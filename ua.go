@@ -21,6 +21,7 @@ type UserAgent struct {
 	Tablet      bool
 	Desktop     bool
 	Bot         bool
+	TV          bool
 }
 
 // Constants for browsers and operating systems for easier comparison
@@ -84,6 +85,10 @@ func Parse(userAgent string) UserAgent {
 	tokens := parse([]byte(userAgent))
 	ua.URL = tokens.url
 
+	// TV check
+	ua.TV = tokens.existsAny("SmartTV", "Smart TV", "SMART-TV", "Apple TV", "GoogleTV",
+		"PhilipsTV", "HbbTV")
+
 	// OS lookup
 	switch {
 	case tokens.exists(Android):
@@ -120,7 +125,7 @@ func Parse(userAgent string) UserAgent {
 		ua.OSVersion = tokens.findMacOSVersion()
 		ua.Desktop = true
 
-	case tokens.exists(Linux):
+	case tokens.existsAny(Linux, strings.ToUpper(Linux)):
 		ua.OS = Linux
 		ua.OSVersion = tokens.get(Linux)
 		ua.Desktop = true
@@ -161,7 +166,7 @@ func Parse(userAgent string) UserAgent {
 
 	case tokens.exists("Bytespider"):
 		ua.Name = "Bytespider"
-		ua.Mobile = tokens.exists("Mobile Safari")
+		ua.Mobile = tokens.exists(MobileSafari)
 		ua.Bot = true
 
 	case tokens.exists(Applebot):
